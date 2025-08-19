@@ -1,0 +1,16 @@
+[Unit]
+Description=RSS to Mattermost Bot
+After=network.target
+
+[Service]
+Type=simple
+User=yourusername
+WorkingDirectory=/home/yourusername/rss
+ExecStart=/usr/bin/python3 /home/yourusername/rss/main.py https://example.com/rss https://another.com/feed --mattermost-url https://mattermost.example/hooks/your-webhook-id
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

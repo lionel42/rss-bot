@@ -38,9 +38,12 @@ def get_entry_id(entry):
 
 def send_to_mattermost(entry, webhook_url):
     """Send RSS entry to Mattermost via webhook."""
-    message = f"**{entry.title}**\n{entry.link}"
+    message = f"**{entry.summary} {entry.title}**\n{entry.link}\n{entry.published}"
     payload = {"text": message}
     logging.info(f"Sending message to Mattermost: {message}")
+    if not webhook_url:
+        logging.error("❌ No Mattermost webhook URL provided. Not sending.")
+        return
     response = requests.post(webhook_url, json=payload)
     if response.status_code != 200:
         logging.error(f"❌ Failed to send message: {response.text}")
@@ -79,13 +82,18 @@ def main():
         help=f"Path to JSON file storing seen entries",
     )
     parser.add_argument(
-        "--mattermost-url", required=True, help="Mattermost webhook URL"
+        "--mattermost-url", help="Mattermost webhook URL"
+    )
+    parser.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="Do not read the cached file"
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
 
     args = parser.parse_args()
 
-    seen_entries = load_seen(args.seen_file)
+    seen_entries = load_seen(args.seen_file) if not args.no_cache else {}
 
     logging.info(
         f"Starting RSS to Mattermost bot... Monitoring {len(args.feeds)} feeds."
